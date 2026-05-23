@@ -1,8 +1,9 @@
+import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
 
-key = "okaym8"
+key = os.getenv("JWT_SECRET_KEY", "fallback_secret_for_dev_only")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
