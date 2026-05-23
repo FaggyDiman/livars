@@ -1,10 +1,70 @@
 <!DOCTYPE html>
+<html lang="ru">
 <head>
-	<title>
-		Main
-	</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Main</title>
+	<link rel="stylesheet" href="../static/mainpage.css">
+	<style>
+		.modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+		.modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 300px; border-radius: 8px; }
+		.modal-content input { width: 100%; margin: 10px 0; padding: 8px; box-sizing: border-box; }
+		.auth-container { display: flex; align-items: center; gap: 15px; }
+		.user-name { font-weight: bold; color: #333; }
+	</style>
 </head>
-
 <body>
-<h1>Это страница.</h1>
+	<nav class="navbar">
+		<div class="logo">Livars</div>
+		<div class="auth-container">
+			{% if user %}
+				<span class="user-name">{{ user.username }}</span>
+				<a href="#" class="auth-link" onclick="logout()">Выйти</a>
+			{% else %}
+				<a href="#" class="auth-link" onclick="showModal('loginModal')">Войти</a>
+				<button class="auth-button" onclick="showModal('registerModal')">Регистрация</button>
+			{% endif %}
+		</div>
+	</nav>
+
+	<!-- Модальное окно входа -->
+	<div id="loginModal" class="modal">
+		<div class="modal-content">
+			<h3>Вход</h3>
+			<form id="loginForm">
+				<input type="text" name="username" placeholder="Логин" required>
+				<input type="password" name="password" placeholder="Пароль" required>
+				<button type="submit" class="auth-button">Войти</button>
+				<button type="button" onclick="hideModal('loginModal')">Отмена</button>
+			</form>
+		</div>
+	</div>
+
+	<!-- Модальное окно регистрации -->
+	<div id="registerModal" class="modal">
+		<div class="modal-content">
+			<h3>Регистрация</h3>
+			<form id="registerForm">
+				<input type="text" name="username" placeholder="Логин" required>
+				<input type="password" name="password" placeholder="Пароль" required>
+				<button type="submit" class="auth-button">Создать аккаунт</button>
+				<button type="button" onclick="hideModal('registerModal')">Отмена</button>
+			</form>
+		</div>
+	</div>
+
+	<main class="feed-container">
+		
+		<article class="post">
+			<h3>1</h3>
+			<p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. 
+				Eos incidunt hic, corporis libero non amet iste. Ipsa, voluptatem minus! Veritatis?</p>
+		</article>
+		<article class="post">
+			<h3>2</h3>
+			<p>TBI</p>
+		</article>
+	</main>
+	<script src="/static/mainpage.js"></script>
 </body>
+</html>
