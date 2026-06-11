@@ -9,4 +9,4 @@ class NodeData(BaseModel):
     x: int
     y: int
     size: int = 5
-    color: str
+    color: str | None = None

@@ -44,6 +44,7 @@ window.onclick = function(event) {
 // Map Canvas functions
 const canvas = document.getElementById('mapCanvas');
 const ctx = canvas.getContext('2d');
+const nodeInfo = document.getElementById('nodeInfo');
 
 let offsetX = 0;
 let offsetY = 0;
@@ -63,9 +64,35 @@ async function loadNodes() {
         const data = await response.json();
         nodes = data.nodes || [];
         drawMap();
+        if (!nodes.length) {
+            nodeInfo.textContent = 'Пока нет точек на карте. Кликните на свободное место, чтобы создать свою точку.';
+        }
     } catch (error) {
         console.error('Error loading nodes:', error);
     }
+}
+
+function showNodeInfo(node) {
+    const createdDate = node.created_at ? new Date(node.created_at).toLocaleString('ru-RU') : 'неизвестно';
+    nodeInfo.innerHTML = `
+        <strong>Точка пользователя:</strong> ${node.creator_username}<br>
+        <strong>Размер:</strong> ${node.size}<br>
+        <strong>Дата создания:</strong> ${createdDate}<br>
+        <strong>Позиция:</strong> ${node.x}, ${node.y}
+    `;
+}
+
+function clearNodeInfo() {
+    nodeInfo.textContent = 'Кликните на точку, чтобы увидеть информацию о ней.';
+}
+
+function getClickedNode(clickX, clickY) {
+    return nodes.find(node => {
+        const dx = clickX - node.x;
+        const dy = clickY - node.y;
+        const radius = Math.max(node.size / 2, 10);
+        return dx * dx + dy * dy <= radius * radius;
+    });
 }
 
 // Функция для отрисовки карты
@@ -116,16 +143,18 @@ function drawGrid() {
 // Функция для отрисовки нод
 function drawNodes() {
     nodes.forEach(node => {
-        // Рисуем круг
         ctx.fillStyle = node.color;
         ctx.beginPath();
         ctx.arc(node.x, node.y, node.size / 2, 0, Math.PI * 2);
         ctx.fill();
-        
-        // Рисуем границу
+
         ctx.strokeStyle = '#333';
         ctx.lineWidth = 1;
         ctx.stroke();
+
+        ctx.fillStyle = '#000';
+        ctx.font = '12px Arial';
+        ctx.fillText(node.creator_username, node.x + node.size / 2 + 8, node.y - node.size / 2 - 6);
     });
 }
 
@@ -165,16 +194,20 @@ canvas.addEventListener('mouseleave', () => {
     isDragging = false;
 });
 
-// Клик по карте для создания ноды
+// Клик по карте для создания ноды или просмотра информации
 canvas.addEventListener('click', async (e) => {
     if (isDragging) return;
-    
-    // Преобразуем координаты клика в координаты карты
+
     const rect = canvas.getBoundingClientRect();
-    const clickX = (e.clientX - rect.left - offsetX) / 1;
-    const clickY = (e.clientY - rect.top - offsetY) / 1;
-    
-    // Проверяем, что клик в пределах карты
+    const clickX = e.clientX - rect.left - offsetX;
+    const clickY = e.clientY - rect.top - offsetY;
+
+    const clickedNode = getClickedNode(clickX, clickY);
+    if (clickedNode) {
+        showNodeInfo(clickedNode);
+        return;
+    }
+
     if (clickX >= 0 && clickX <= MAP_WIDTH && clickY >= 0 && clickY <= MAP_HEIGHT) {
         try {
             const response = await fetch('/api/node/create', {
@@ -186,12 +219,12 @@ canvas.addEventListener('click', async (e) => {
                     size: 5
                 })
             });
-            
+
             const result = await response.json();
             if (result.status === 'ok') {
-                // Добавляем новую ноду на карту
                 nodes.push(result.node);
                 drawMap();
+                showNodeInfo(result.node);
             } else {
                 alert(result.detail || 'Не удалось создать ноду');
             }

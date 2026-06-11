@@ -1,8 +1,8 @@
 import os
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
-from sqlalchemy import String, create_engine, ForeignKey
+from sqlalchemy import ForeignKey, String, create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -45,3 +45,12 @@ engine = create_engine(DATABASE_URL)
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+    with engine.begin() as conn:
+        inspector = inspect(conn)
+        if "users" in inspector.get_table_names():
+            columns = [col["name"] for col in inspector.get_columns("users")]
+            if "created_node" not in columns:
+                conn.execute(
+                    text("ALTER TABLE users ADD COLUMN created_node BOOLEAN NOT NULL DEFAULT FALSE")
+                )
